@@ -118,7 +118,7 @@ impl Service {
         let emulation = Emulation::new(
             emulation_backend,
             listener,
-            (config.invert_scroll(), config.mouse_sensitivity()),
+            (config.invert_scroll(), config.mouse_sensitivity(), config.swap_alt_meta()),
         );
 
         // create dns resolver
@@ -209,6 +209,9 @@ impl Service {
             }
             FrontendRequest::UpdateMouseSensitivity(mouse_sensitivity) => {
                 self.update_mouse_sensitivity(mouse_sensitivity)
+            }
+            FrontendRequest::UpdateAltMetaSwap(swap_alt_meta) => {
+                self.update_alt_meta_swap(swap_alt_meta)
             }
         }
     }
@@ -528,6 +531,10 @@ impl Service {
     fn update_mouse_sensitivity(&mut self, mouse_sensitivity: f64) {
         self.emulation
             .request_mouse_sensitivity_change(mouse_sensitivity);
+    }
+
+    fn update_alt_meta_swap(&mut self, swap_alt_meta: bool) {
+        self.emulation.request_alt_meta_swap(swap_alt_meta);
     }
 
     fn spawn_hook_command(&self, handle: ClientHandle) {

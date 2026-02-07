@@ -61,6 +61,11 @@ enum CliSubcommand {
         #[clap(short, long)]
         invert_scroll: bool,
     },
+    /// swap alt and meta keys
+    SwapAltMeta {
+        #[clap(short, long)]
+        swap: bool,
+    },
     /// set mouse mouse sensitivity
     SetMouseSensitivity { mouse_sensitivity: f64 },
     /// set position
@@ -149,6 +154,10 @@ async fn execute(cmd: CliSubcommand) -> Result<(), CliError> {
         }
         CliSubcommand::InvertScrolling { invert_scroll } => {
             tx.request(FrontendRequest::UpdateScrollingInversion(invert_scroll))
+                .await?
+        }
+        CliSubcommand::SwapAltMeta { swap } => {
+            tx.request(FrontendRequest::UpdateAltMetaSwap(swap))
                 .await?
         }
         CliSubcommand::SetMouseSensitivity { mouse_sensitivity } => {

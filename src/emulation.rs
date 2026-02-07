@@ -61,17 +61,19 @@ enum EmulationRequest {
     Terminate,
     UpdateScrollingInversion(bool),
     UpdateMouseSensitivity(f64),
+    UpdateAltMetaSwap(bool),
 }
 
 impl Emulation {
     pub(crate) fn new(
         backend: Option<input_emulation::Backend>,
         listener: LanMouseListener,
-        input_config: (bool, f64),
+        input_config: (bool, f64, bool),
     ) -> Self {
         let input_config = InputConfig {
             invert_scroll: input_config.0,
             mouse_sensitivity: input_config.1,
+            swap_alt_meta: input_config.2,
         };
         let emulation_proxy = EmulationProxy::new(backend, input_config);
         let (request_tx, request_rx) = channel();
@@ -117,6 +119,12 @@ impl Emulation {
     pub(crate) fn request_mouse_sensitivity_change(&self, mouse_sensitivity: f64) {
         self.request_tx
             .send(EmulationRequest::UpdateMouseSensitivity(mouse_sensitivity))
+            .expect("channel closed")
+    }
+
+    pub(crate) fn request_alt_meta_swap(&self, swap_alt_meta: bool) {
+        self.request_tx
+            .send(EmulationRequest::UpdateAltMetaSwap(swap_alt_meta))
             .expect("channel closed")
     }
 
@@ -197,6 +205,10 @@ impl ListenTask {
                     }
                     EmulationRequest::UpdateMouseSensitivity(mouse_sensitivity) => {
                         self.emulation_proxy.input_config.mouse_sensitivity = mouse_sensitivity;
+                        self.emulation_proxy.update_config();
+                    }
+                    EmulationRequest::UpdateAltMetaSwap(swap_alt_meta) => {
+                        self.emulation_proxy.input_config.swap_alt_meta = swap_alt_meta;
                         self.emulation_proxy.update_config();
                     }
                     EmulationRequest::ChangePort(port) => {

@@ -256,6 +256,7 @@ pub enum FrontendRequest {
     /// update the input post-processing settings (invert-scroll, mouse_sensitivity)
     UpdateScrollingInversion(bool),
     UpdateMouseSensitivity(f64),
+    UpdateAltMetaSwap(bool),
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]

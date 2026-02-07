@@ -25,6 +25,7 @@ pub async fn run(config: Config, _args: TestEmulationArgs) -> Result<(), InputEm
     let input_config: InputConfig = InputConfig {
         invert_scroll: config.invert_scroll(),
         mouse_sensitivity: config.mouse_sensitivity(),
+        swap_alt_meta: config.swap_alt_meta(),
     };
     let mut emulation = InputEmulation::new(backend, input_config).await?;
     emulation.create(0).await;

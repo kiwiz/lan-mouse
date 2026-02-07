@@ -11,6 +11,8 @@ port = 4242
 mouse_sensitivity = 1.0
 # invert scrolling direction
 invert_scroll = false
+# swap alt and meta keys
+swap_alt_meta = false
 
 # list of authorized tls certificate fingerprints that
 # are accepted for incoming traffic

@@ -73,13 +73,15 @@ impl Display for Backend {
 pub struct InputConfig {
     pub invert_scroll: bool,
     pub mouse_sensitivity: f64,
+    pub swap_alt_meta: bool,
 }
 
 impl InputConfig {
-    pub fn new(invert_scroll: bool, mouse_sensitivity: f64) -> Self {
+    pub fn new(invert_scroll: bool, mouse_sensitivity: f64, swap_alt_meta: bool) -> Self {
         InputConfig {
             invert_scroll,
             mouse_sensitivity,
+            swap_alt_meta,
         }
     }
 }
@@ -164,11 +166,26 @@ impl InputEmulation {
         event: Event,
         handle: EmulationHandle,
     ) -> Result<(), EmulationError> {
-        match event {
+        // Apply alt/meta swap transformation if enabled
+        let mut transformed_event = event;
+        if self.input_config.swap_alt_meta {
+            if let Event::Keyboard(KeyboardEvent::Key { key, state, time }) = event {
+                let transformed_key = match input_event::scancode::Linux::try_from(key) {
+                    Ok(input_event::scancode::Linux::KeyLeftAlt) => input_event::scancode::Linux::KeyLeftMeta as u32,
+                    Ok(input_event::scancode::Linux::KeyRightalt) => input_event::scancode::Linux::KeyRightmeta as u32,
+                    Ok(input_event::scancode::Linux::KeyLeftMeta) => input_event::scancode::Linux::KeyLeftAlt as u32,
+                    Ok(input_event::scancode::Linux::KeyRightmeta) => input_event::scancode::Linux::KeyRightalt as u32,
+                    _ => key,
+                };
+                transformed_event = Event::Keyboard(KeyboardEvent::Key { key: transformed_key, state, time });
+            }
+        }
+
+        match transformed_event {
             Event::Keyboard(KeyboardEvent::Key { key, state, .. }) => {
                 // prevent double pressed / released keys
                 if self.update_pressed_keys(handle, key, state) {
-                    self.emulation.consume(event, handle).await?;
+                    self.emulation.consume(transformed_event, handle).await?;
                 }
                 Ok(())
             }
@@ -190,7 +207,7 @@ impl InputEmulation {
                     let event = Event::Pointer(PointerEvent::AxisDiscrete120 { axis, value });
                     self.emulation.consume(event, handle).await?;
                 } else {
-                    self.emulation.consume(event, handle).await?;
+                    self.emulation.consume(transformed_event, handle).await?;
                 }
                 Ok(())
             }
@@ -201,11 +218,11 @@ impl InputEmulation {
                     let event = Event::Pointer(PointerEvent::Axis { time, axis, value });
                     self.emulation.consume(event, handle).await?;
                 } else {
-                    self.emulation.consume(event, handle).await?;
+                    self.emulation.consume(transformed_event, handle).await?;
                 }
                 Ok(())
             }
-            _ => self.emulation.consume(event, handle).await,
+            _ => self.emulation.consume(transformed_event, handle).await,
         }
     }
 

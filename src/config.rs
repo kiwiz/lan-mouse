@@ -61,6 +61,7 @@ struct InputConfig {
     // TODO: implement scroll_sensitivity and mouse_acceleration
     invert_scroll: Option<bool>,
     mouse_sensitivity: Option<f64>,
+    swap_alt_meta: Option<bool>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, Eq, PartialEq)]
@@ -387,6 +388,14 @@ impl Config {
             .and_then(|c| c.input_post_processing.as_ref())
             .and_then(|i| i.mouse_sensitivity)
             .unwrap_or(1.0)
+    }
+
+    pub fn swap_alt_meta(&self) -> bool {
+        self.config_toml
+            .as_ref()
+            .and_then(|c| c.input_post_processing.as_ref())
+            .and_then(|i| i.swap_alt_meta)
+            .unwrap_or(false)
     }
 
     /// list of configured clients
